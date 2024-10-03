@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebaseConfig';
+import { db, auth } from '../firebaseConfig';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import { TOTP } from 'otpauth'; // Import TOTP từ otpauth
@@ -13,9 +13,16 @@ const Home = () => {
   const [showDeletePopup, setShowDeletePopup] = useState(false); // Hiển thị popup xác nhận
   const [timeLeft, setTimeLeft] = useState(30); // Thời gian đếm ngược
 
-  // Lấy danh sách mã 2FA
+  // Lấy danh sách mã 2FA cho user hiện tại
   const fetch2FACodes = async () => {
-    const querySnapshot = await getDocs(collection(db, '2fa-codes'));
+    if (!auth.currentUser) {
+      console.error("User not logged in");
+      return;
+    }
+
+    const userId = auth.currentUser.uid; // Lấy UID của user hiện tại
+    const querySnapshot = await getDocs(collection(db, 'users', userId, '2fa-codes')); // Lấy mã 2FA từ collection riêng của user
+
     let fetchedCodes = querySnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
 
     // Sắp xếp danh sách theo priority (ưu tiên tăng dần)
@@ -66,7 +73,8 @@ const Home = () => {
   // Hàm xử lý xóa
   const handleDelete = async () => {
     try {
-      await deleteDoc(doc(db, '2fa-codes', codeToDelete));
+      const userId = auth.currentUser.uid; // Lấy UID của user hiện tại
+      await deleteDoc(doc(db, 'users', userId, '2fa-codes', codeToDelete)); // Xóa mã 2FA từ collection riêng của user
       setShowDeletePopup(false); // Đóng popup sau khi xóa
       fetch2FACodes(); // Tải lại danh sách sau khi xóa
     } catch (error) {

@@ -1,33 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { db } from '../firebaseConfig';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import React, { useState } from 'react';
+import { db, auth } from '../firebaseConfig'; // Firebase config
+import { collection, addDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 const Add2FA = () => {
   const [title, setTitle] = useState('');
   const [secret, setSecret] = useState('');
-  const [priority, setPriority] = useState(1000); // Mặc định là 1000
+  const [priority, setPriority] = useState(1);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-
-  // Lấy giá trị priority thấp nhất khi tải trang
-  useEffect(() => {
-    const fetchPriorities = async () => {
-      const querySnapshot = await getDocs(collection(db, '2fa-codes'));
-      const fetchedCodes = querySnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
-
-      if (fetchedCodes.length === 0) {
-        setPriority(1000); // Nếu danh sách rỗng, mặc định priority là 1000
-      } else {
-        // Lấy giá trị priority nhỏ nhất và trừ đi 20
-        const minPriority = Math.min(...fetchedCodes.map((code) => code.priority));
-        const newPriority = Math.max(minPriority - 20, 0); // Không cho phép giá trị âm
-        setPriority(newPriority);
-      }
-    };
-
-    fetchPriorities();
-  }, []);
 
   const handleAdd = async () => {
     if (!title || !secret) {
@@ -35,14 +16,15 @@ const Add2FA = () => {
       return;
     }
     try {
-      await addDoc(collection(db, '2fa-codes'), {
+      const userId = auth.currentUser.uid; // Lấy UID của user hiện tại
+      await addDoc(collection(db, 'users', userId, '2fa-codes'), {
         title,
         secret,
-        priority: Number(priority),
+        priority: Number(priority)
       });
       setTitle('');
       setSecret('');
-      setPriority(1000); // Đặt lại giá trị priority mặc định sau khi thêm mã
+      setPriority(1);
       navigate('/home'); // Chuyển hướng về trang home sau khi thêm mã
     } catch (e) {
       setError('Lỗi khi thêm mã: ' + e.message);
@@ -88,7 +70,7 @@ const Add2FA = () => {
                   id="priority"
                   className="form-control"
                   value={priority}
-                  onChange={(e) => setPriority(e.target.value)} // Cho phép người dùng chỉnh sửa priority
+                  onChange={(e) => setPriority(e.target.value)}
                   placeholder="Nhập độ ưu tiên"
                 />
               </div>

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Login from './components/Login';
 import Home from './components/Home';
 import Add2FA from './components/Add2FA';
 import Sidebar from './components/Sidebar'; // Import Sidebar component
+import SignUp from './components/SignUp';
+import SignIn from './components/SignIn';
 import { auth } from './firebaseConfig';
 
 function App() {
@@ -24,7 +25,7 @@ function App() {
           <Routes>
             <Route
               path="/"
-              element={user ? <Navigate to="/home" /> : <Login />}
+              element={user ? <Navigate to="/home" /> : <SignIn />}
             />
             <Route
               path="/home"
@@ -33,6 +34,10 @@ function App() {
             <Route
               path="/add"
               element={user ? <Add2FA /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/signup"
+              element={<SignUp />}
             />
           </Routes>
         </div>
