@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
-import { authenticator } from 'otplib';
+import { TOTP } from 'otpauth'; // Import TOTP từ otpauth
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import './Home.css';
-
 
 const Home = () => {
   const [codes, setCodes] = useState([]);
@@ -25,9 +24,16 @@ const Home = () => {
     setCodes(fetchedCodes);
   };
 
-  // Tạo mã 2FA từ secret key
+  // Tạo mã 2FA từ secret key sử dụng otpauth
   const generateOTP = (secret) => {
-    return authenticator.generate(secret);
+    const totp = new TOTP({
+      secret: secret,  // Secret key của mã 2FA (cần ở định dạng Base32)
+      digits: 6,       // Số chữ số của mã 2FA
+      period: 30       // Thời gian chu kỳ là 30 giây
+    });
+
+    // Tạo mã OTP
+    return totp.generate();
   };
 
   // Cập nhật thời gian đếm ngược
@@ -111,7 +117,6 @@ const Home = () => {
 
               <button className="btn btn-danger" onClick={() => confirmDelete(code.id)}>Xóa</button>
             </li>
-
           );
         })}
       </ul>
