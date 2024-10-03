@@ -1,0 +1,48 @@
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.popup-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+
+/* Thời gian đếm ngược */
+.countdown-timer {
+    background-color: #ffeb3b; /* Màu nền vàng nhạt */
+    color: #212529; /* Màu chữ tối */
+    font-size: 14px;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 20px;
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+  }
+  
+  /* Điều chỉnh giao diện để countdown luôn nằm cạnh 2FA code */
+  .list-group-item .countdown-timer {
+    margin-left: auto;
+    margin-right: 10px;
+    padding: 5px;
+    font-size: 12px;
+    background: #f1c40f; /* Màu vàng sáng */
+    color: white;
+    border-radius: 50px;
+    font-weight: 500;
+  }
+  

@@ -1,23 +1,29 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Loại trừ thư mục node_modules
+node_modules/
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
+# Loại trừ thư mục build (nếu có)
+build/
 
-# testing
-/coverage
+# Loại trừ các tệp lock
+package-lock.json
+yarn.lock
 
-# production
-/build
-
-# misc
-.DS_Store
+# Loại trừ các tệp cấu hình môi trường
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
+# Loại trừ các tệp log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Loại trừ các thư mục IDE không cần thiết (VSCode, JetBrains, Sublime Text, ...)
+.vscode/
+.idea/
+.DS_Store
+
+# Loại trừ tệp cache
+*.cache
