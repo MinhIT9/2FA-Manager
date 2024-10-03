@@ -7,13 +7,13 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import './Home.css';
 
 const Home = () => {
-  const [codes, setCodes] = useState([]);
-  const [copied, setCopied] = useState(null); // Để theo dõi trạng thái sao chép
+  const [codes, setCodes] = useState([]); // Lưu danh sách mã 2FA
+  const [copied, setCopied] = useState(null); // Theo dõi trạng thái sao chép mã
   const [codeToDelete, setCodeToDelete] = useState(null); // Mã cần xóa
   const [showDeletePopup, setShowDeletePopup] = useState(false); // Hiển thị popup xác nhận
   const [timeLeft, setTimeLeft] = useState(30); // Thời gian đếm ngược
 
-  // Lấy danh sách mã 2FA cho user hiện tại
+  // Lấy danh sách mã 2FA của user hiện tại từ Firestore
   const fetch2FACodes = async () => {
     if (!auth.currentUser) {
       console.error("User not logged in");
@@ -26,9 +26,9 @@ const Home = () => {
     let fetchedCodes = querySnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
 
     // Sắp xếp danh sách theo priority (ưu tiên tăng dần)
-    fetchedCodes = fetchedCodes.sort((a, b) => a.priority - b.priority);
+    fetchedCodes = fetchedCodes.sort((a, b) => Number(a.priority) - Number(b.priority));
 
-    setCodes(fetchedCodes);
+    setCodes(fetchedCodes); // Cập nhật danh sách mã
   };
 
   // Tạo mã 2FA từ secret key sử dụng otpauth
@@ -58,32 +58,32 @@ const Home = () => {
     return () => clearInterval(interval); // Hủy bỏ bộ đếm thời gian khi component unmount
   }, []);
 
-  // Hàm xử lý sao chép
+  // Hàm xử lý sao chép mã
   const handleCopy = (codeId) => {
-    setCopied(codeId); // Đặt trạng thái đã sao chép
-    setTimeout(() => setCopied(null), 2000); // Sau 2 giây, reset lại trạng thái
+    setCopied(codeId); // Đánh dấu mã đã được sao chép
+    setTimeout(() => setCopied(null), 2000); // Sau 2 giây, reset lại trạng thái sao chép
   };
 
   // Hàm hiển thị popup xác nhận xóa
   const confirmDelete = (codeId) => {
     setCodeToDelete(codeId);
-    setShowDeletePopup(true); // Hiển thị popup
+    setShowDeletePopup(true); // Hiển thị popup xác nhận xóa
   };
 
-  // Hàm xử lý xóa
+  // Hàm xử lý xóa mã
   const handleDelete = async () => {
     try {
       const userId = auth.currentUser.uid; // Lấy UID của user hiện tại
-      await deleteDoc(doc(db, 'users', userId, '2fa-codes', codeToDelete)); // Xóa mã 2FA từ collection riêng của user
+      await deleteDoc(doc(db, 'users', userId, '2fa-codes', codeToDelete)); // Xóa mã từ Firestore
       setShowDeletePopup(false); // Đóng popup sau khi xóa
-      fetch2FACodes(); // Tải lại danh sách sau khi xóa
+      fetch2FACodes(); // Tải lại danh sách mã sau khi xóa
     } catch (error) {
       console.error("Lỗi khi xóa: ", error);
     }
   };
 
   useEffect(() => {
-    fetch2FACodes(); // Lấy danh sách mã 2FA khi trang được load lần đầu
+    fetch2FACodes(); // Lấy danh sách mã 2FA khi component được load lần đầu
   }, []);
 
   return (
@@ -92,37 +92,36 @@ const Home = () => {
       <Link to="/add" className="btn btn-success mb-3">Thêm mã 2FA mới</Link>
       <ul className="list-group">
         {codes.map((code) => {
-          const otp = generateOTP(code.secret); // Tạo mã OTP
+          const otp = generateOTP(code.secret); // Tạo mã OTP từ secret
 
           return (
             <li key={code.id} className="list-group-item d-flex justify-content-between align-items-center">
               <div>
-                <p><strong>Title:</strong> {code.title}</p>
+                <p><strong>Tiêu đề:</strong> {code.title}</p>
                 <p>
-                  <strong>2FA Code:  </strong>
+                  <strong>Mã 2FA: </strong>
                   <CopyToClipboard text={otp} onCopy={() => handleCopy(code.id)}>
                     <span style={{ cursor: 'pointer', color: 'red' }} title="Click để sao chép">
                       {otp} <i className="fa-solid fa-copy" style={{ marginLeft: '5px' }}></i>
                     </span>
                   </CopyToClipboard>
 
-                  {/* Thời gian đếm ngược thiết kế lại */}
+                  {/* Hiển thị thời gian đếm ngược */}
                   <span className="badge countdown-timer" style={{ marginLeft: '10px' }}>
                     {timeLeft} giây
                   </span>
                 </p>
-                <p><strong>Priority:</strong> {code.priority}</p>
+                <p><strong>Độ ưu tiên:</strong> {code.priority}</p>
               </div>
 
-              {/* Thông báo khi sao chép */}
-              {
-                copied === code.id && (
-                  <div style={popupStyle}>
-                    <span>Đã sao chép!</span>
-                  </div>
-                )
-              }
+              {/* Thông báo khi sao chép mã */}
+              {copied === code.id && (
+                <div style={popupStyle}>
+                  <span>Đã sao chép!</span>
+                </div>
+              )}
 
+              {/* Nút xóa mã */}
               <button className="btn btn-danger" onClick={() => confirmDelete(code.id)}>Xóa</button>
             </li>
           );
@@ -130,21 +129,20 @@ const Home = () => {
       </ul>
 
       {/* Popup xác nhận xóa */}
-      {
-        showDeletePopup && (
-          <div className="popup">
-            <div className="popup-content">
-              <h5>Bạn có chắc chắn muốn xóa?</h5>
-              <button className="btn btn-danger me-3" onClick={handleDelete}>Xóa</button>
-              <button className="btn btn-secondary" onClick={() => setShowDeletePopup(false)}>Không</button>
-            </div>
+      {showDeletePopup && (
+        <div className="popup">
+          <div className="popup-content">
+            <h5>Bạn có chắc chắn muốn xóa?</h5>
+            <button className="btn btn-danger me-3" onClick={handleDelete}>Xóa</button>
+            <button className="btn btn-secondary" onClick={() => setShowDeletePopup(false)}>Không</button>
           </div>
-        )
-      }
-    </div >
+        </div>
+      )}
+    </div>
   );
 };
 
+// Style cho thông báo sao chép mã
 const popupStyle = {
   position: 'absolute',
   top: '50%',

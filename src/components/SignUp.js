@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { auth, db } from '../firebaseConfig'; // Firebase config
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { setDoc, doc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom'; // Sử dụng để điều hướng sau khi đăng ký thành công
+import { useNavigate, Link } from 'react-router-dom'; // Thêm Link để điều hướng
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
@@ -67,7 +67,10 @@ const SignUp = () => {
         className="form-control mb-3"
       />
       
-      <button onClick={handleSignUp} className="btn btn-primary">Đăng ký</button>
+      <button onClick={handleSignUp} className="btn btn-primary mb-3">Đăng ký</button>
+      
+      {/* Thêm liên kết tới trang đăng nhập */}
+      <p>Đã có tài khoản? <Link to="/">Đăng nhập</Link></p>
     </div>
   );
 };
