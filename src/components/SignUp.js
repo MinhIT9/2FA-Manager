@@ -5,6 +5,7 @@ import { setDoc, doc } from 'firebase/firestore';
 import { useNavigate, Link } from 'react-router-dom'; // Thêm Link để điều hướng
 
 const SignUp = () => {
+  const [fullname, setFullname] = useState(''); // Thêm trường fullname
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState(''); // Thêm trường xác nhận mật khẩu
@@ -23,14 +24,24 @@ const SignUp = () => {
       return;
     }
 
+    if (!fullname) {
+      setError('Vui lòng nhập họ và tên.');
+      return;
+    }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
       // Lưu thông tin người dùng vào Firestore
       await setDoc(doc(db, 'users', user.uid), {
-        email: user.email,
-        createdAt: new Date(),
+        UserID: user.uid,
+        Fullname: fullname,
+        Email: user.email,
+        Password: password, // Lưu mật khẩu tạm thời, tốt hơn nên mã hóa mật khẩu
+        DateCreate: new Date(),
+        DateUpdate: null,
+        Role: 'Customer' // Mặc định là 'Customer', có thể thay đổi sau
       });
       
       alert('Đăng ký thành công!');
@@ -45,6 +56,13 @@ const SignUp = () => {
       <h2>Đăng ký</h2>
       {error && <div className="alert alert-danger">{error}</div>}
       
+      <input 
+        type="text" 
+        placeholder="Họ và tên" 
+        value={fullname} 
+        onChange={(e) => setFullname(e.target.value)} 
+        className="form-control mb-3"
+      />
       <input 
         type="email" 
         placeholder="Email" 

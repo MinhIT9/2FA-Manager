@@ -5,7 +5,9 @@ import Add2FA from './components/Add2FA';
 import Sidebar from './components/Sidebar'; // Import Sidebar component
 import SignUp from './components/SignUp';
 import SignIn from './components/SignIn';
+import AddCategory from './components/AddCategory'; // Import AddCategory component
 import { auth } from './firebaseConfig';
+import Manage2FA from './components/Manage2FA';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -35,6 +37,15 @@ function App() {
               path="/add"
               element={user ? <Add2FA /> : <Navigate to="/" />}
             />
+            <Route
+              path="/categories"
+              element={user ? <AddCategory /> : <Navigate to="/" />} // Thêm route mới cho quản lý Category
+            />
+            <Route
+              path="/manage-2fa"
+              element={user ? <Manage2FA /> : <Navigate to="/" />}
+            />
+
             <Route
               path="/signup"
               element={<SignUp />}
